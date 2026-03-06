@@ -1,4 +1,5 @@
 from utils import load_image
+import pygame
 
 class Card:
     def __init__(self, name, image_path, base_atk, base_def, effect):
@@ -40,6 +41,13 @@ class Card:
             f"ATK Arreglado: {self.fixed_atk}, DEF Arreglado: {self.fixed_def}\n"
             f"ATK Total: {self.get_total_atk()}, DEF Total: {self.get_total_def()}"
         )
+
+    
+# Atributos cacheados para las imágenes (evita errores de tipo al asignar desde GameApp)
+from typing import Optional
+image_small: Optional['pygame.Surface'] = None
+image_large: Optional['pygame.Surface'] = None
+image_def: Optional['pygame.Surface'] = None
 
 # Definir las cartas con sus nombres y rutas de imagen
 cards_info = [
