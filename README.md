@@ -7,8 +7,9 @@ Pequeño proyecto de cartas con Pygame. Contiene la lógica del juego, recursos 
 - `src/game_app.py`: clase `GameApp` (bucle principal, UI, eventos).
 - `src/card.py`: definición de cartas y `cards_info`.
 - `src/utils.py`: utilidades (carga de imágenes con manejo de errores).
-- `src/check_images_exist.py`: test rápido que verifica que los ficheros de imagen existen.
-- `src/check_resources.py`: test que verifica imágenes usando Pygame (requiere `pygame`).
+- `src/check_images_exist.py`: comprobación rápida de que los ficheros de imagen existen.
+- `src/check_resources.py`: comprobación de imágenes usando Pygame (requiere `pygame`).
+- `src/watcher.py`: reinicio automático del juego durante el desarrollo.
 - `requirements.txt`: dependencias del proyecto.
 
 ## Requisitos
@@ -28,6 +29,14 @@ Nota: la instalación de `pygame` puede requerir herramientas de compilación en
 python src\main.py
 ```
 
+El juego resuelve los recursos desde la raíz del repositorio, por lo que el
+comando funciona aunque se ejecute desde otra carpeta. Durante el desarrollo
+se puede usar:
+
+```powershell
+python src\watcher.py
+```
+
 ## Tests y comprobaciones de recursos
 - Comprobar que las rutas de imagen listadas en `cards_info` existen (no requiere Pygame):
 ```powershell
@@ -42,13 +51,10 @@ python src\check_resources.py
 
 ## Notas de diseño y próximos pasos
 - `main.py` ahora es un entrypoint que crea `GameApp` en `src/game_app.py`.
-- Se corrigió el reparto de mazos para evitar asignar la misma lista a ambos jugadores y se añadió cacheado básico de imágenes escaladas.
-- `load_image` en `src/utils.py` ahora maneja errores y devuelve un placeholder si la carga falla.
-
-Si quieres, puedo:
-- Añadir tests con `pytest`.
-- Crear un pequeño CI que ejecute `check_images_exist.py`.
-- Completar la refactorización para extraer más módulos (UI, recursos, lógica del juego).
+- La partida usa una pila compartida sin duplicar objetos de carta y cachea las imágenes escaladas.
+- Las cartas se crean por partida y cargan sus imágenes después de inicializar Pygame.
+- `load_image` en `src/utils.py` resuelve recursos de forma independiente del
+  directorio actual y devuelve un placeholder si la carga falla.
 
 ---
 Creado automáticamente por el asistente de refactorización.

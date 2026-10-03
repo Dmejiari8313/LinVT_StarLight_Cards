@@ -2,6 +2,9 @@ import pygame
 import sys
 import subprocess
 import random
+from pathlib import Path
+
+from card import cards_info
 
 pygame.init()
 
@@ -52,11 +55,11 @@ def draw_buttons():
         screen.blit(text, (button["rect"].x + 10, button["rect"].y + 10))
 
 def start_game():
-    subprocess.Popen([sys.executable, "D:\\VSCode\\LinVT_StarLight_Cards\\src\\main.py"])
+    main_script = Path(__file__).with_name("main.py")
+    subprocess.Popen([sys.executable, str(main_script)], cwd=str(main_script.parent.parent))
 
 def view_cards():
-    # Aquí puedes agregar la lógica para ver todas las cartas
-    print("Ver todas las cartas")
+    print("\n".join(f"- {name}" for name, *_ in cards_info))
 
 def change_resolution():
     global screen

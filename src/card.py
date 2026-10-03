@@ -1,11 +1,21 @@
-from utils import load_image
+from typing import Callable, Optional
+
 import pygame
 
+from utils import load_image
+
 class Card:
-    def __init__(self, name, image_path, base_atk, base_def, effect):
+    def __init__(
+        self,
+        name: str,
+        image_path: str,
+        base_atk: int,
+        base_def: int,
+        effect: Optional[Callable] = None,
+    ):
         self.name = name
         self.image_path = image_path
-        self.image = load_image(image_path)
+        self.image: Optional[pygame.Surface] = None
         
         # Tipo de Stat 1: Stats base
         self.base_atk = base_atk
@@ -19,7 +29,16 @@ class Card:
         self.fixed_atk = 0
         self.fixed_def = 0
         
-        self.effect = effect
+        self.effect = effect or (lambda _target: None)
+        self.image_small: Optional[pygame.Surface] = None
+        self.image_large: Optional[pygame.Surface] = None
+        self.image_def: Optional[pygame.Surface] = None
+
+    def load_resources(self) -> pygame.Surface:
+        """Carga la imagen cuando Pygame ya está inicializado."""
+        if self.image is None:
+            self.image = load_image(self.image_path)
+        return self.image
     
     def use(self, target):
         self.effect(target)
@@ -43,12 +62,6 @@ class Card:
         )
 
     
-# Atributos cacheados para las imágenes (evita errores de tipo al asignar desde GameApp)
-from typing import Optional
-image_small: Optional['pygame.Surface'] = None
-image_large: Optional['pygame.Surface'] = None
-image_def: Optional['pygame.Surface'] = None
-
 # Definir las cartas con sus nombres y rutas de imagen
 cards_info = [
     ("Yon", "assets/cards/Carta_1.jpg", 0, 0),
@@ -103,6 +116,10 @@ cards_info = [
     ("Y Eso Sería Todo por Hoy", "assets/cards/Carta_50.jpg",0,0)
 ]
 
-# Crear las cartas
-cards = [Card(name, image_path, atk, def_, lambda target: None) for name, image_path, atk, def_ in cards_info]
+def create_cards():
+    """Crea un mazo independiente para cada partida."""
+    return [Card(name, image_path, atk, def_) for name, image_path, atk, def_ in cards_info]
 
+
+# Catálogo compatible con las comprobaciones y consumidores existentes.
+cards = create_cards()

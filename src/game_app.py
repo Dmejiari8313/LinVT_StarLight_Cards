@@ -5,7 +5,7 @@ import logging
 
 from game import Game
 from player import Player
-from card import cards
+from card import create_cards
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,17 +36,18 @@ class GameApp:
         self.player1 = Player("Player 1")
         self.player2 = Player("Player 2")
 
-        # Cartas y mazos
-        random.shuffle(cards)
+        # Cada partida recibe sus propias instancias para no compartir estado.
+        self.cards = create_cards()
+        random.shuffle(self.cards)
         # repartir inicial
-        self.player1.hand = cards[:4]
-        self.player2.hand = cards[4:8]
-        remaining = cards[8:]
-        # separar el mazo restante entre ambos jugadores y una pila (stacked)
-        half = len(remaining) // 2
-        self.player1.deck = remaining[:half]
-        self.player2.deck = remaining[half:]
-        self.stacked_cards = list(remaining)  # copia para la pila
+        self.player1.hand = self.cards[:4]
+        self.player2.hand = self.cards[4:8]
+        remaining = self.cards[8:]
+        # La interfaz usa una pila compartida para las cartas restantes.
+        # No se mantienen copias en los mazos de los jugadores.
+        self.player1.deck = []
+        self.player2.deck = []
+        self.stacked_cards = remaining
 
         # Variables visuales y posiciones calculadas por resolución
         self._compute_layout()
@@ -70,8 +71,8 @@ class GameApp:
         self.graveyard_index = 0
 
         # life
-        self.player1_life = 5000
-        self.player2_life = 5000
+        self.player1.life_points = 5000
+        self.player2.life_points = 5000
 
         # inputs
         self.font = pygame.font.Font(None, 36)
@@ -115,13 +116,14 @@ class GameApp:
         self.font_small = pygame.font.Font(None, 24)
 
         # cache scaled images for cards
-        for card in cards:
+        for card in self.cards:
+            image = card.load_resources()
             # ensure integer, positive sizes
             w = max(1, int(self.CARD_W))
             h = max(1, int(self.CARD_H))
             # small image
             try:
-                small = pygame.transform.smoothscale(card.image, (w, h))
+                small = pygame.transform.smoothscale(image, (w, h))
                 try:
                     card.image_small = small.convert_alpha()
                 except Exception:
@@ -134,7 +136,7 @@ class GameApp:
             # large image (cached) - avoid re-scaling every frame
             try:
                 large_size = (max(1, int(w * 3)), max(1, int(h * 3)))
-                large = pygame.transform.smoothscale(card.image, large_size)
+                large = pygame.transform.smoothscale(image, large_size)
                 try:
                     card.image_large = large.convert_alpha()
                 except Exception:
@@ -240,8 +242,8 @@ class GameApp:
         self.screen.blit(p1_name, (50, 30))
         self.screen.blit(p2_name, (50, self.H - 75))
 
-        p1_life = self.font.render(f": {self.player1_life}", True, self.WHITE)
-        p2_life = self.font.render(f": {self.player2_life}", True, self.WHITE)
+        p1_life = self.font.render(f": {self.player1.life_points}", True, self.WHITE)
+        p2_life = self.font.render(f": {self.player2.life_points}", True, self.WHITE)
         self.screen.blit(p1_life, (250, 30))
         self.screen.blit(p2_life, (250, self.H - 75))
 
@@ -279,11 +281,11 @@ class GameApp:
             if 250 <= mx <= 350 and 30 <= my <= 50:
                 self.life_input_active = True
                 self.active_life_player = 'player1'
-                self.life_input = str(self.player1_life)
+                self.life_input = str(self.player1.life_points)
             elif 250 <= mx <= 350 and self.H - 75 <= my <= self.H - 35:
                 self.life_input_active = True
                 self.active_life_player = 'player2'
-                self.life_input = str(self.player2_life)
+                self.life_input = str(self.player2.life_points)
             elif 50 <= mx <= 250 and 30 <= my <= 70:
                 self.input_active = True
                 self.active_player = 'player1'
@@ -358,9 +360,9 @@ class GameApp:
                     val = None
                 if val is not None:
                     if self.active_life_player == 'player1':
-                        self.player1_life = val
+                        self.player1.life_points = max(0, val)
                     else:
-                        self.player2_life = val
+                        self.player2.life_points = max(0, val)
                 self.life_input = ""
                 self.life_input_active = False
                 self.active_life_player = None

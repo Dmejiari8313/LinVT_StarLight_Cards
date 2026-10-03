@@ -30,7 +30,7 @@ def check_cards(cards_module):
         bad = []
         for c in cards_module.cards:
             name = getattr(c, 'name', '<unknown>')
-            img = getattr(c, 'image', None)
+            img = c.load_resources()
             if img is None:
                 logger.error('Carta %s no tiene atributo image', name)
                 bad.append(name)
